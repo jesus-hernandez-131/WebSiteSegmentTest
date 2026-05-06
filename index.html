@@ -19,7 +19,7 @@
         <h1>Get in Touch</h1>
         <p>Please fill out the form below.</p>
         
-        <form action="https://formspree.io/f/xdabejre" method="POST">
+        <form id="contact-form" onsubmit="identify(event)" action="https://formspree.io/f/xdabejre" method="POST">
             <label>Full Name:</label>
             <input type="text" name="name" required>
 
@@ -35,27 +35,35 @@
 
 
 <script type="text/javascript">
-      function identify(e){
-        e.preventDefault();
-        var form = e.target;
-        var email = form["email"].value;
-        var fullname = form["fullname"].value;
-        var destination = form["destination"].value;
-        var details = form["details"].value;
-        var user = {
-            email: email, 
-            name: fullname, 
-            destination: destination, 
-            details: details
-        };
-        analytics.identify('kinglizard', {
-            email: email, 
-            name: fullname
-        });
-        analytics.track('destination submitted', user, function() {
-            window.location.href = "";
-        });
-      }
+  function identify(e) {
+    // We don't always want to preventDefault if you want Formspree to still receive the data
+    // But for Segment to reliably fire, we handle the submission via script or a short timeout.
+    
+    var form = e.target;
+    var email = form["email"].value;
+    var name = form["name"].value;
+    var phone = form["phone"].value;
+
+    // 1. Identify the user (Traits)
+    // Using email as a unique ID is common if you don't have a database ID yet
+    analytics.identify(email, {
+      name: name,
+      email: email,
+      phone: phone
+    });
+
+    // 2. Track the Action
+    analytics.track('Form Submitted', {
+      form_name: 'Contact Page',
+      name: name,
+      email: email,
+      phone: phone
+    });
+
+    // Note: Since this is a standard form submit, the page will refresh/redirect 
+    // to Formspree immediately. Segment's library handles this queueing 
+    // automatically in modern browsers.
+  }
 </script>
 
 </body>
